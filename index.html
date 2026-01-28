@@ -1,1 +1,536 @@
+<!DOCTYPE html>
+<html class="dark" lang="es">
 
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Rebel Athlete SWOT | Core Interactive Hub</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Archivo+Black&amp;family=Archivo+Narrow:ital,wght@0,400..700;1,400..700&amp;family=Rajdhani:wght@300;400;500;600;700&amp;display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap"
+        rel="stylesheet">
+
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#f20d46",
+                        "secondary": "#00f2ff",
+                        "rebel-orange": "#FFAC1C",
+                        "background-light": "#f8f5f6",
+                        "background-dark": "#0a0708",
+                        "panel-dark": "#181113",
+                        "industrial-gray": "#0F0F0F",
+                        "metallic": "#94A3B8"
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"],
+                        "rebel-display": ["Archivo Black", "sans-serif"],
+                        "condensed": ["Archivo Narrow", "sans-serif"],
+                        "ui": ["Rajdhani", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer components {
+            .glass-panel {
+                background: rgba(24, 17, 19, 0.7);
+                backdrop-filter: blur(12px);
+                border: 1px solid rgba(242, 13, 70, 0.2);
+            }
+            .neon-glow-primary {
+                box-shadow: 0 0 15px rgba(242, 13, 70, 0.4);
+            }
+            .neon-glow-secondary {
+                box-shadow: 0 0 15px rgba(0, 242, 255, 0.4);
+            }
+            .glitch-hover:hover {
+                text-shadow: 2px 0 #f20d46, -2px 0 #00f2ff;
+            }
+            .floating {
+                animation: float 6s ease-in-out infinite;
+            }
+            @keyframes float {
+                0% { transform: translateY(0px) rotate(0deg); }
+                50% { transform: translateY(-20px) rotate(2deg); }
+                100% { transform: translateY(0px) rotate(0deg); }
+            }
+            .scanline {
+                background: linear-gradient(to bottom, transparent 50%, rgba(0, 0, 0, .1) 50%);
+                background-size: 100% 4px;
+            }
+            .header-athletic {
+                @apply font-rebel-display uppercase italic tracking-tighter leading-[0.85];
+            }
+            .label-ui {
+                @apply font-ui font-bold uppercase tracking-[0.2em] text-xs;
+            }
+            .btn-rebel {
+                @apply bg-rebel-orange text-black px-10 py-5 rounded-sm font-rebel-display uppercase tracking-tighter italic transition-all duration-300 hover:bg-secondary hover:text-black hover:shadow-[0_0_30px_rgba(0,255,255,0.7)];
+            }
+            .radar-grid {
+                stroke: rgba(148, 163, 184, 0.2);
+                stroke-width: 1;
+            }
+            .radar-axis {
+                stroke: rgba(148, 163, 184, 0.4);
+                stroke-width: 1;
+            }
+            .radar-area {
+                fill: rgba(0, 255, 255, 0.15);
+                stroke: #00FFFF;
+                stroke-width: 2;
+            }
+            .radar-point {
+                fill: #FFAC1C;
+                filter: drop-shadow(0 0 4px #FFAC1C);
+            }
+            .gritty-overlay {
+                background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuA2udXVgxtEiAeHoL2TQr4BXhRgr1ksGl4qo6VZJml0WGCcCINff4MTqeZXiPLFY9N6b4nPvpaxB3yytQuTfFhKSBLimwc0boBFvbjAkZ_QNs7nIqwq7WmCsfcuqFfTZ4QNsdu7DWyoYpHpui12dxgxG0rlx_75eenMd_SwomS25LjA3CeM-PJ22ffR4c9LXGJGYs_SDE0FIKWzt7VO60IR5UHDj2rqm31uLjGYV_xH6tcXq9W1l3Q56pjkeAzUAebXVYUCqqWa9bo);
+                mix-blend-mode: soft-light;
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-background-dark font-display text-white selection:bg-primary selection:text-white">
+    <div id="root"></div>
+
+    <!-- React and Routing Dependencies -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/history@5/umd/history.development.js"></script>
+    <script src="https://unpkg.com/react-router@6.3.0/umd/react-router.development.js"></script>
+    <script src="https://unpkg.com/react-router-dom@6.3.0/umd/react-router-dom.development.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        const { createRoot } = ReactDOM;
+        const { MemoryRouter, Routes, Route, Link, useNavigate, useLocation } = ReactRouterDOM;
+
+        // --- Shared Components ---
+
+        const Modal = ({ id, isOpen, onClose, title, children }) => {
+            if (!isOpen) return null;
+            return (
+                <div className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center p-4 backdrop-blur-md overflow-y-auto">
+                    <div className="bg-background-dark border border-secondary relative w-full max-w-5xl my-8 transform transition-transform duration-300 overflow-y-auto max-h-[90vh]">
+                        <div className="p-8 md:p-12">
+                            <button onClick={onClose} className="absolute top-6 right-6 text-secondary hover:text-primary transition-colors z-20">
+                                <span className="material-symbols-outlined text-3xl font-bold">close</span>
+                            </button>
+                            <h2 className="header-athletic text-4xl md:text-5xl text-rebel-orange mb-12 border-b border-primary/20 pb-4">{title}</h2>
+                            {children}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const RadarChart = ({ points, labels }) => (
+            <div className="relative bg-industrial-gray/50 border border-secondary/20 p-8 rounded-sm">
+                <div className="absolute top-4 left-4 label-ui text-[10px] text-secondary">BIOMETRIC_VISUALIZATION_v2.1</div>
+                <svg className="w-full h-auto" viewBox="0 0 400 400">
+                    {[40, 80, 120, 160].map(r => (
+                        <circle key={r} className="radar-grid" cx="200" cy="200" fill="none" r={r}></circle>
+                    ))}
+                    <line className="radar-axis" x1="200" x2="200" y1="200" y2="40"></line>
+                    <line className="radar-axis" x1="200" x2="352" y1="200" y2="151"></line>
+                    <line className="radar-axis" x1="200" x2="294" y1="200" y2="330"></line>
+                    <line className="radar-axis" x1="200" x2="106" y1="200" y2="330"></line>
+                    <line className="radar-axis" x1="200" x2="48" y1="200" y2="151"></line>
+
+                    {labels && labels.map((l, i) => {
+                        const angles = [30, 150, 350, 350, 150]; // rough positions
+                        const anchors = ["middle", "start", "start", "end", "end"];
+                        const coords = [
+                            { x: 200, y: 30 }, { x: 360, y: 150 }, { x: 300, y: 350 }, { x: 100, y: 350 }, { x: 40, y: 150 }
+                        ];
+                        return (
+                            <text key={i} className="fill-metallic font-ui font-bold text-[12px] uppercase tracking-tighter italic" textAnchor={anchors[i]} x={coords[i].x} y={coords[i].y}>{l}</text>
+                        );
+                    })}
+
+                    <polygon className="radar-area" points={points}></polygon>
+                    {points.split(' ').map((p, i) => {
+                        const [cx, cy] = p.split(',');
+                        return <circle key={i} className="radar-point" cx={cx} cy={cy} r="4"></circle>;
+                    })}
+                </svg>
+            </div>
+        );
+
+        // --- Page Components ---
+
+        const CoreHubPage = () => {
+            const [activeDetail, setActiveDetail] = useState('debilidades');
+            const [isCAMEExpanded, setIsCAMEExpanded] = useState(false);
+            const navigate = useNavigate();
+
+            const detailData = {
+                fortalezas: [
+                    { id: '01', title: 'RESISTENCIA ANAERÓBICA', desc: 'Capacidad de sostener esfuerzos al 95% VO2 Max por periodos prolongados.' },
+                    { id: '02', title: 'ENFOQUE COGNITIVO', desc: 'Mantenimiento de precisión técnica bajo fatiga extrema.' },
+                    { id: '03', title: 'DISCIPLINA HÍBRIDA', desc: 'Cumplimiento del 100% en protocolos de nutrición y descanso.' }
+                ],
+                debilidades: [
+                    { id: '01', title: 'RECUPERACIÓN POST-ESFUERZO', desc: 'Lenta tras entrenamientos de alta intensidad (>90% VO2 Max).' },
+                    { id: '02', title: 'FALTA DE FLEXIBILIDAD', desc: 'Rigidez en la cadena posterior dificultando técnica de zancada.' },
+                    { id: '03', title: 'GESTIÓN DEL ESTRÉS', desc: 'Picos de cortisol elevados 24h antes del evento competitivo.' }
+                ],
+                oportunidades: [
+                    { id: '01', title: 'TECH INTEGRATION', desc: 'Nuevos sensores biométricos para optimizar picos de forma.' },
+                    { id: '02', title: 'MERCADO URBANO', desc: 'Creciente interés en estética de rendimiento industrial.' }
+                ],
+                amenazas: [
+                    { id: '01', title: 'SATURACIÓN', desc: 'Aumento de competidores en el circuito regional.' },
+                    { id: '02', title: 'LESIONES RECURRENTES', desc: 'Riesgo por sobrecarga en articulaciones distales.' }
+                ]
+            };
+
+            return (
+                <div className="relative flex flex-col h-screen w-screen overflow-hidden bg-background-dark">
+                    {/* Background Decoration */}
+                    <div className="fixed inset-0 pointer-events-none opacity-20 overflow-hidden">
+                        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary rounded-full blur-[120px]"></div>
+                        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-secondary rounded-full blur-[120px]"></div>
+                        <div className="scanline absolute inset-0 opacity-10"></div>
+                    </div>
+
+                    <header className="flex items-center justify-between px-10 py-6 border-b border-primary/20 bg-background-dark/80 backdrop-blur-md z-50">
+                        <div className="flex items-center gap-4 group cursor-pointer" onClick={() => navigate('/')}>
+                            <img src="./profile.jpg" className="w-12 h-12 rounded-lg object-cover border-2 border-primary shadow-[0_0_10px_rgba(242,13,70,0.5)]" alt="User" />
+                            <div className="size-8 bg-primary flex items-center justify-center rounded-sm rotate-45 group-hover:rotate-90 transition-transform duration-500">
+                                <span className="material-symbols-outlined text-white -rotate-45 group-hover:-rotate-90 transition-transform">bolt</span>
+                            </div>
+                            <h1 className="text-xl font-bold tracking-tighter glitch-hover">REBEL ATHLETE <span className="text-primary">CORE</span></h1>
+                        </div>
+                        <nav className="hidden md:flex items-center gap-10">
+                            <Link className="text-xs uppercase tracking-widest font-bold border-b-2 border-primary pb-1" to="/">Hub Central</Link>
+                            <Link className="text-xs uppercase tracking-widest font-bold text-white/50 hover:text-white transition-colors" to="/narrative">Narrativa</Link>
+                            <a className="text-xs uppercase tracking-widest font-bold text-white/50 hover:text-white transition-colors" href="#">Métricas</a>
+                            <a className="text-xs uppercase tracking-widest font-bold text-white/50 hover:text-white transition-colors" href="#">Configuración</a>
+                        </nav>
+                        <div className="flex items-center gap-4">
+                            <div className="flex flex-col items-end mr-2">
+                                <span className="text-[10px] text-secondary font-mono">STATUS: SYNCED</span>
+                                <span className="text-xs font-bold uppercase">A. VALENTINE</span>
+                            </div>
+                            <div className="size-12 rounded-lg border-2 border-primary p-0.5">
+                                <div className="w-full h-full bg-cover bg-center rounded-sm" style={{ backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuDdYu101KtFm-wk2N9866Gk3sExl-QWjRBMxzALLdlYZ06C9VcaEnMzzMKuMghGLyEKWmEhga7NkksbUYjeSWyoxyT6jzS9eQAIS3ZXQ4-T1c52uViaBI8oaaNSpah4ZJxFjrwE8NQBkSHQ_F1HFLg1-n0fbkJ5h9dL_CoLpKB7aJdb1NtCpGCAYJwPtm1zBGHuoBjH3mRED5argOvJzNxtoTUBjrrP79cfyDCd8-Vi5pvi25TeyCH0jAywN-kU4t7xCFRk4rxA9JQ')" }}></div>
+                            </div>
+                        </div>
+                    </header>
+
+                    <main className="flex-1 relative flex items-center justify-center overflow-hidden">
+                        <div className="relative z-10 w-full max-w-2xl h-[70vh] flex items-center justify-center">
+                            <div className="absolute inset-0 flex items-center justify-center opacity-40">
+                                <div className="w-full h-full bg-contain bg-center bg-no-repeat" style={{ backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuBSNv0yfuuTUzLjIcd23XQKF0eg1CrQGUReOz-QfPjI9ZaE9PQ2D2v7tbUq1AAkz_AvDv56NRzQYDgJip9V7scdq_h9wDfaAEtftoEacFv25qJ3hpaSN_nfWhF8M_s_snGqvkwaCgsdNBbG-JPl--O9afxT4A-6RS3_r0D_lVtyW0tSlHoKYyNfyq4CyuNtypGe6b-iSWhr4Uc0PWs-sC244V7eP_eD71kXTMP8FQjnfVw2aUZIpqmzzoOXsiy9mYvIjTGSIN82ajo')" }}></div>
+                            </div>
+                            <div className="absolute size-96 rounded-full border border-primary/30 animate-pulse"></div>
+
+                            {/* Nodes */}
+                            <div className="absolute top-10 left-10 md:top-20 md:left-20 floating" style={{ animationDelay: '0s' }}>
+                                <button onClick={() => setActiveDetail('fortalezas')} className="group relative flex flex-col items-center">
+                                    <div className="size-24 rounded-xl glass-panel border-secondary/50 flex items-center justify-center group-hover:neon-glow-secondary transition-all duration-300">
+                                        <span className="material-symbols-outlined text-secondary text-4xl">fitness_center</span>
+                                    </div>
+                                    <span className="mt-4 text-xs font-bold tracking-[0.2em] uppercase text-secondary">Fortalezas</span>
+                                </button>
+                            </div>
+                            <div className="absolute top-10 right-10 md:top-20 md:right-20 floating" style={{ animationDelay: '1.5s' }}>
+                                <button onClick={() => setActiveDetail('debilidades')} className="group relative flex flex-col items-center">
+                                    <div className="size-24 rounded-xl glass-panel border-primary/50 flex items-center justify-center group-hover:neon-glow-primary transition-all duration-300">
+                                        <span className="material-symbols-outlined text-primary text-4xl">warning</span>
+                                    </div>
+                                    <span className="mt-4 text-xs font-bold tracking-[0.2em] uppercase text-primary">Debilidades</span>
+                                </button>
+                            </div>
+                            <div className="absolute bottom-10 left-10 md:bottom-20 md:left-20 floating" style={{ animationDelay: '3s' }}>
+                                <button onClick={() => setActiveDetail('oportunidades')} className="group relative flex flex-col items-center">
+                                    <div className="size-24 rounded-xl glass-panel border-secondary/50 flex items-center justify-center group-hover:neon-glow-secondary transition-all duration-300">
+                                        <span className="material-symbols-outlined text-secondary text-4xl">rocket_launch</span>
+                                    </div>
+                                    <span className="mt-4 text-xs font-bold tracking-[0.2em] uppercase text-secondary">Oportunidades</span>
+                                </button>
+                            </div>
+                            <div className="absolute bottom-10 right-10 md:bottom-20 md:right-20 floating" style={{ animationDelay: '4.5s' }}>
+                                <button onClick={() => setActiveDetail('amenazas')} className="group relative flex flex-col items-center">
+                                    <div className="size-24 rounded-xl glass-panel border-primary/50 flex items-center justify-center group-hover:neon-glow-primary transition-all duration-300">
+                                        <span className="material-symbols-outlined text-primary text-4xl">dangerous</span>
+                                    </div>
+                                    <span className="mt-4 text-xs font-bold tracking-[0.2em] uppercase text-primary">Amenazas</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Side Panel */}
+                        <aside className={`absolute right-0 top-0 h-full w-[350px] glass-panel border-l border-primary/30 z-20 p-8 flex flex-col transition-transform duration-500 ${activeDetail ? 'translate-x-0' : 'translate-x-full'}`}>
+                            <div className="flex items-center justify-between mb-8">
+                                <h3 className="text-2xl font-bold tracking-tighter text-primary uppercase">{activeDetail}</h3>
+                                <button onClick={() => setActiveDetail(null)} className="p-2 hover:bg-white/5 rounded-full">
+                                    <span className="material-symbols-outlined">close</span>
+                                </button>
+                            </div>
+                            <div className="space-y-6 flex-1 overflow-y-auto pr-4">
+                                {activeDetail && detailData[activeDetail].map((item) => (
+                                    <div key={item.id} className="group border-l-2 border-primary/30 pl-4 py-2 hover:border-primary transition-colors">
+                                        <h4 className="text-xs font-bold uppercase tracking-widest text-white/40 mb-1">MÉTRICA {item.id}</h4>
+                                        <p className="text-sm font-medium">{item.desc}</p>
+                                    </div>
+                                ))}
+                            </div>
+                            <button className="mt-8 w-full bg-primary py-4 text-xs font-black uppercase tracking-[0.3em] hover:brightness-125 transition-all">
+                                ACTUALIZAR DATOS
+                            </button>
+                        </aside>
+                    </main>
+
+                    {/* CAME Action Plan Footer */}
+                    <footer className={`relative z-30 transition-all duration-500 ${isCAMEExpanded ? 'translate-y-0' : 'translate-y-[calc(100%-40px)]'}`}>
+                        <div className="flex justify-center -mb-2">
+                            <button onClick={() => setIsCAMEExpanded(!isCAMEExpanded)} className="bg-background-dark border-t border-x border-primary/40 px-6 py-2 rounded-t-xl flex items-center gap-2 hover:bg-primary transition-colors">
+                                <span className="text-[10px] font-black tracking-widest uppercase">Estrategia CAME</span>
+                                <span className={`material-symbols-outlined text-sm transition-transform ${isCAMEExpanded ? 'rotate-180' : ''}`}>keyboard_arrow_up</span>
+                            </button>
+                        </div>
+                        <div className="bg-background-dark/95 backdrop-blur-xl border-t border-primary/50 px-10 py-8">
+                            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 max-w-7xl mx-auto">
+                                <div className="p-4 rounded-lg bg-primary/10 border border-primary/20">
+                                    <div className="flex items-center gap-3 mb-3"><span className="text-primary font-black text-xl italic">C</span><h5 className="text-[10px] font-bold tracking-[0.2em] uppercase text-white/60">Corregir</h5></div>
+                                    <p className="text-xs font-medium leading-relaxed">Implementar protocolo de crioterapia tras sesiones de umbral anaeróbico.</p>
+                                </div>
+                                <div className="p-4 rounded-lg bg-secondary/10 border border-secondary/20">
+                                    <div className="flex items-center gap-3 mb-3"><span className="text-secondary font-black text-xl italic">A</span><h5 className="text-[10px] font-bold tracking-[0.2em] uppercase text-white/60">Afrontar</h5></div>
+                                    <p className="text-xs font-medium leading-relaxed">Sesiones de visualización guiada 3 veces por semana para control de ansiedad.</p>
+                                </div>
+                                <div className="p-4 rounded-lg bg-primary/10 border border-primary/20">
+                                    <div className="flex items-center gap-3 mb-3"><span className="text-primary font-black text-xl italic">M</span><h5 className="text-[10px] font-bold tracking-[0.2em] uppercase text-white/60">Mantener</h5></div>
+                                    <p className="text-xs font-medium leading-relaxed">Continuar con el régimen nutricional hiperproteico actual; 98% cumplimiento.</p>
+                                </div>
+                                <div className="p-4 rounded-lg bg-secondary/10 border border-secondary/20">
+                                    <div className="flex items-center gap-3 mb-3"><span className="text-secondary font-black text-xl italic">E</span><h5 className="text-[10px] font-bold tracking-[0.2em] uppercase text-white/60">Explotar</h5></div>
+                                    <p className="text-xs font-medium leading-relaxed">Utilizar los nuevos sensores biométricos para optimizar picos de forma.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </footer>
+                </div>
+            );
+        };
+
+        const NarrativePage = () => {
+            const [activeModal, setActiveModal] = useState(null);
+            const navigate = useNavigate();
+
+            return (
+                <div className="bg-background-dark font-ui text-white selection:bg-secondary selection:text-black overflow-x-hidden min-h-screen">
+                    <header className="fixed top-0 w-full z-50 glass-panel border-b border-secondary/20 px-8 py-4 flex justify-between items-center bg-black/80 backdrop-blur-md">
+                        <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate('/')}>
+                            <span className="material-symbols-outlined text-secondary text-4xl">bolt</span>
+                            <h1 className="header-athletic text-2xl">Atleta Rebelde</h1>
+                        </div>
+                        <nav className="hidden lg:flex items-center gap-10">
+                            <a className="label-ui hover:text-rebel-orange transition-colors" href="#swot">Análisis FODA</a>
+                            <a className="label-ui hover:text-rebel-orange transition-colors" href="#came">Estrategia CAME</a>
+                            <a className="label-ui hover:text-rebel-orange transition-colors" href="#metrics">Métricas</a>
+                            <button className="bg-transparent border-2 border-secondary text-secondary hover:bg-secondary hover:text-black px-8 py-2 font-display italic text-sm tracking-tight uppercase transition-all">SYNC DATA</button>
+                        </nav>
+                        <div className="lg:hidden"><span className="material-symbols-outlined text-secondary text-3xl">menu</span></div>
+                    </header>
+
+                    <main className="flex flex-col w-full">
+                        {/* Hero Section */}
+                        <section className="relative min-h-screen w-full flex flex-col items-center justify-center p-4">
+                            <div className="absolute inset-0 z-0 gritty-overlay opacity-30"></div>
+                            <div className="absolute inset-0 bg-gradient-to-t from-background-dark via-transparent to-transparent z-0"></div>
+                            <div className="relative z-10 text-center max-w-6xl px-4">
+                                <span className="inline-block px-4 py-1 bg-secondary text-black label-ui mb-8">Protocolo de Alto Rendimiento</span>
+                                <h1 className="text-7xl md:text-[10rem] header-athletic mb-8">
+                                    ATLETA CON <br /><span className="text-rebel-orange">ALMA REBELDE</span>
+                                </h1>
+                                <p className="font-condensed text-xl md:text-2xl text-metallic max-w-3xl mx-auto mb-12 italic font-medium uppercase tracking-tight">
+                                    Análisis táctico comercial. Rendimiento explosivo, resiliencia industrial y dominancia absoluta.
+                                </p>
+                                <div className="flex flex-wrap justify-center gap-6">
+                                    <a href="#swot" className="flex items-center gap-4 btn-rebel text-xl group">
+                                        DESBLOQUEAR NARRATIVA
+                                        <span className="material-symbols-outlined group-hover:translate-x-2 transition-transform">bolt</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </section>
+
+                        {/* SWOT Sections */}
+                        <section className="relative py-32 px-4 md:px-12 max-w-[1440px] mx-auto w-full" id="swot">
+                            <div className="mb-24 flex flex-col items-start border-l-8 border-primary pl-8">
+                                <h2 className="text-6xl md:text-7xl header-athletic mb-6">NARRATIVA FODA</h2>
+                                <p className="font-condensed text-xl text-metallic max-w-xl italic uppercase font-bold">Desglose técnico de la maquinaria interna y el entorno competitivo.</p>
+                            </div>
+
+                            <div className="grid grid-cols-1 gap-16">
+                                {/* Strength Card */}
+                                <div className="group bg-industrial-gray border border-secondary/10 overflow-hidden hover:border-secondary transition-all duration-500 flex flex-col md:flex-row">
+                                    <div className="w-full md:w-[55%] aspect-video md:aspect-auto bg-cover bg-center grayscale group-hover:grayscale-0 transition-all duration-700" style={{ backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuDBp3zN2Iu77onIfXpkgeySIgJWmKNTr3SkClzAUXPD76ZpEv7FSRCVy7QEJwTChlAI1RUbngvOfSWMp6GzDmDDgkS08HI23h1TiRK7OPf5OfkdF8EmyNtOzarL4bDtaLP9gz_o548KeR6qs76AjOACLn31xZBqTzDrrrjXiN_f-0vbjSjXGw5CIcb2IJz-UEYuH4njGL0xDAcj5ld5p--JsQWfZdjvBaz_1c5J_QS7dZ3bFA725xtKRXwqokIJB-QpYddjf1nR1EU')" }}>
+                                        <div className="w-full h-full bg-primary/10 mix-blend-overlay"></div>
+                                    </div>
+                                    <div className="p-10 md:p-20 flex flex-col justify-center w-full md:w-[45%] bg-black">
+                                        <span className="text-secondary label-ui mb-6">01 // FORTALEZAS</span>
+                                        <h3 className="text-4xl md:text-6xl header-athletic mb-8">PODER EXPLOSIVO <br /><span className="text-rebel-orange">&amp; GARRA MENTAL</span></h3>
+                                        <button onClick={() => setActiveModal('fortalezas')} className="flex items-center gap-4 text-rebel-orange font-display italic text-lg uppercase tracking-tight group/btn">
+                                            VER DOSSIER TÉCNICO <span className="material-symbols-outlined group-hover/btn:translate-x-2 transition-transform">arrow_forward</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Weakness Card */}
+                                <div className="group bg-industrial-gray border border-secondary/10 overflow-hidden hover:border-secondary transition-all duration-500 flex flex-col md:flex-row-reverse">
+                                    <div className="w-full md:w-[55%] aspect-video md:aspect-auto bg-cover bg-center grayscale group-hover:grayscale-0 transition-all duration-700" style={{ backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuDC2RQ2-U_ZGtKvxrKeET6cxsCWzoKFXfFUJ_a9MRBCjSZh-30GjlDq6J65Dj0Rv6eSc7aNRRf8JODMYkJ2svr2G5war3MSh7jMOnFcKtkbur2xB7InLQv7V9PUijAHhizhdcE87tfRlkW5h9i9Dp0I6AFt5q3v-Lqoy9ZAOTltPoWR5CczKhORsCIPUIW4_1p2gFr7yHA8Z-wt5n5JOzX4fdxTNGSH-ilwzjkJtp7ceeoEaLb1OKWBOluWsK3DX-8DAyzCshZtxeE')" }}>
+                                        <div className="w-full h-full bg-secondary/10 mix-blend-overlay"></div>
+                                    </div>
+                                    <div className="p-10 md:p-20 flex flex-col justify-center w-full md:w-[45%] bg-black">
+                                        <span className="text-secondary label-ui mb-6">02 // DEBILIDADES</span>
+                                        <h3 className="text-4xl md:text-6xl header-athletic mb-8">FLUJO DE <br /><span className="text-rebel-orange">RECUPERACIÓN</span></h3>
+                                        <button onClick={() => setActiveModal('debilidades')} className="flex items-center gap-4 text-rebel-orange font-display italic text-lg uppercase tracking-tight group/btn">
+                                            ANÁLISIS DE FALLO <span className="material-symbols-outlined group-hover/btn:translate-x-2 transition-transform">arrow_forward</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        {/* CAME Section */}
+                        <section className="relative py-32 px-4 bg-background-dark border-t border-secondary/20" id="came">
+                            <div className="max-w-[1200px] mx-auto">
+                                <div className="flex flex-col md:flex-row justify-between items-end mb-24 gap-12">
+                                    <div className="max-w-2xl">
+                                        <h2 className="text-6xl md:text-8xl header-athletic mb-6">ESTRATEGIA <span className="text-rebel-orange">CAME</span></h2>
+                                        <p className="font-condensed text-xl text-metallic italic uppercase font-bold">Protocolos de ejecución para la optimización del ecosistema rebelde.</p>
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                                    <div className="bg-industrial-gray p-10 border-t-4 border-secondary shadow-2xl relative overflow-hidden group">
+                                        <div className="flex items-center gap-6 mb-10 relative z-10">
+                                            <span className="material-symbols-outlined text-rebel-orange text-4xl">build</span>
+                                            <h4 className="font-display italic text-2xl uppercase tracking-tighter">Corregir <span className="text-secondary opacity-50 block text-xs font-ui tracking-widest mt-1">DEBILIDADES</span></h4>
+                                        </div>
+                                        <div className="space-y-10 relative z-10">
+                                            <div>
+                                                <div className="flex justify-between label-ui mb-3"><span className="text-white">OPTIMIZACIÓN RECUPERACIÓN</span><span className="text-secondary">65% TARGET</span></div>
+                                                <div className="w-full bg-white/5 h-1"><div className="bg-secondary h-full w-[65%] shadow-[0_0_15px_#00FFFF]"></div></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="bg-industrial-gray p-10 border-t-4 border-secondary shadow-2xl relative overflow-hidden group">
+                                        <div className="flex items-center gap-6 mb-10 relative z-10">
+                                            <span className="material-symbols-outlined text-rebel-orange text-4xl">rocket_launch</span>
+                                            <h4 className="font-display italic text-2xl uppercase tracking-tighter">Explotar <span className="text-secondary opacity-50 block text-xs font-ui tracking-widest mt-1">OPORTUNIDADES</span></h4>
+                                        </div>
+                                        <p className="font-condensed text-lg text-metallic italic font-bold mb-10 uppercase">Escalar la marca rebelde hacia la infraestructura de fitness futurista.</p>
+                                        <button onClick={() => setActiveModal('tactic')} className="block text-center w-full py-4 border-2 border-rebel-orange text-rebel-orange font-display italic uppercase text-sm tracking-tight hover:bg-rebel-orange hover:text-black transition-all">EJECUTAR TÁCTICA</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                    </main>
+
+                    {/* Modals */}
+                    <Modal id="fortalezas" isOpen={activeModal === 'fortalezas'} onClose={() => setActiveModal(null)} title="DOSSIER TÉCNICO: FORTALEZAS">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                            <RadarChart points="200,50 345,153 261,285 153,278 100,165" labels={["Disciplina", "Resiliencia", "Habilidad", "Urbano", "Adaptabilidad"]} />
+                            <div className="space-y-8">
+                                <ul className="space-y-6 text-metallic text-lg">
+                                    <li className="flex items-start gap-4">
+                                        <span className="text-secondary font-bold shrink-0">▶</span>
+                                        <span><strong className="text-white block uppercase mb-1 tracking-tight">Capacidad Anaeróbica Superior:</strong> Output máximo durante intervalos prolongados.</span>
+                                    </li>
+                                    <li className="flex items-start gap-4">
+                                        <span className="text-secondary font-bold shrink-0">▶</span>
+                                        <span><strong className="text-white block uppercase mb-1 tracking-tight">Enfoque de Túnel:</strong> Capacidad cognitiva para ignorar interferencias externas.</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </Modal>
+
+                    <Modal id="debilidades" isOpen={activeModal === 'debilidades'} onClose={() => setActiveModal(null)} title="ANÁLISIS DE FALLO: DEBILIDADES">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                            <RadarChart points="200,90 310,175 270,300 130,280 90,165" labels={["Sprint", "Focus", "Flex", "Sleep", "Stress"]} />
+                            <div className="space-y-8">
+                                <ul className="space-y-6 text-metallic text-lg">
+                                    <li className="flex items-start gap-4">
+                                        <span className="text-secondary font-bold shrink-0">▶</span>
+                                        <span><strong className="text-white block uppercase mb-1 tracking-tight">Latencia en Recuperación:</strong> Retraso del 12% en la regeneración de tejidos tras micro-traumas.</span>
+                                    </li>
+                                    <li className="flex items-start gap-4">
+                                        <span className="text-secondary font-bold shrink-0">▶</span>
+                                        <span><strong className="text-white block uppercase mb-1 tracking-tight">Sesgo de Sobre-entrenamiento:</strong> Tendencia a ignorar señales preventivas.</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </Modal>
+
+                    <Modal id="tactic" isOpen={activeModal === 'tactic'} onClose={() => setActiveModal(null)} title="EJECUCIÓN TÁCTICA: PROTOCOLO ALPHA">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                            <RadarChart points="200,60 340,160 280,310 140,290 80,150" labels={["Load", "Speed", "Heat", "Cold", "Sync"]} />
+                            <div className="space-y-8">
+                                <div className="space-y-6 text-metallic text-lg">
+                                    <p className="font-bold text-white uppercase tracking-widest mb-4 flex items-center gap-3"><span className="w-12 h-[1px] bg-primary"></span> PASOS OPERATIVOS</p>
+                                    <ul className="space-y-6">
+                                        <li className="flex items-start gap-4">
+                                            <span className="text-secondary font-bold mt-1 shrink-0">01</span>
+                                            <span><strong className="text-white block uppercase mb-1 tracking-tight">Despliegue de Recursos:</strong> Movilización de capital hacia tecnología de monitoreo.</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </Modal>
+
+                    <footer className="py-16 px-10 border-t border-secondary/20 flex flex-col lg:flex-row justify-between items-center gap-10 bg-background-dark">
+                        <div className="flex items-center gap-4">
+                            <span className="material-symbols-outlined text-secondary text-3xl">bolt</span>
+                            <p className="header-athletic text-lg opacity-80">NARRATIVA FODA // REBEL ATHLETE © 2024</p>
+                        </div>
+                        <div className="flex flex-wrap justify-center gap-12">
+                            <span className="label-ui text-metallic">SYS_STATUS: <span className="text-secondary">OPTIMIZED</span></span>
+                            <span className="label-ui text-metallic">ENCRYPTED_ACCESS</span>
+                        </div>
+                    </footer>
+                </div>
+            );
+        };
+
+        const App = () => {
+            return (
+                <MemoryRouter>
+                    <Routes>
+                        <Route path="/" element={<CoreHubPage />} />
+                        <Route path="/narrative" element={<NarrativePage />} />
+                    </Routes>
+                </MemoryRouter>
+            );
+        };
+
+        const root = createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+
+</html>
